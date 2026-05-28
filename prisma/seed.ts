@@ -5,8 +5,9 @@ const prisma = new PrismaClient();
 async function main() {
   const workspace = await prisma.workspace.create({
     data: {
-      name: "Demo Workspace",
-    },
+        name: "Demo Workspace",
+        slug: "demo-workspace",
+    }
   });
 
   const user = await prisma.user.create({

@@ -1,0 +1,116 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { prisma } from "@/lib/db/prisma";
+import { safeAction } from "@/lib/actions/safe-action";
+import { assertPermission } from "@/lib/permissions/assert-permission";
+import { clientSchema } from "@/features/clients/schemas";
+
+export async function createClientAction(formData: FormData) {
+  return safeAction(async () => {
+    const { workspace } = await assertPermission("clients", "create");
+
+    const parsed = clientSchema.safeParse({
+      name: formData.get("name"),
+      email: formData.get("email"),
+      company: formData.get("company"),
+      notes: formData.get("notes"),
+    });
+
+    if (!parsed.success) {
+      throw new Error("Invalid client data.");
+    }
+
+    const client = await prisma.client.create({
+      data: {
+        workspaceId: workspace.id,
+        name: parsed.data.name,
+        email: parsed.data.email || null,
+        company: parsed.data.company || null,
+        notes: parsed.data.notes || null,
+      },
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        workspaceId: workspace.id,
+        action: "CLIENT_CREATED",
+        entity: "Client",
+        entityId: client.id,
+      },
+    });
+
+    revalidatePath("/clients");
+
+    return client;
+  });
+}
+
+export async function updateClientAction(clientId: string, formData: FormData) {
+  return safeAction(async () => {
+    const { workspace } = await assertPermission("clients", "update");
+
+    const parsed = clientSchema.safeParse({
+      name: formData.get("name"),
+      email: formData.get("email"),
+      company: formData.get("company"),
+      notes: formData.get("notes"),
+    });
+
+    if (!parsed.success) {
+      throw new Error("Invalid client data.");
+    }
+
+    const client = await prisma.client.update({
+      where: {
+        id: clientId,
+        workspaceId: workspace.id,
+      },
+      data: {
+        name: parsed.data.name,
+        email: parsed.data.email || null,
+        company: parsed.data.company || null,
+        notes: parsed.data.notes || null,
+      },
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        workspaceId: workspace.id,
+        action: "CLIENT_UPDATED",
+        entity: "Client",
+        entityId: client.id,
+      },
+    });
+
+    revalidatePath("/clients");
+
+    return client;
+  });
+}
+
+export async function deleteClientAction(clientId: string) {
+  return safeAction(async () => {
+    const { workspace } = await assertPermission("clients", "delete");
+
+    const client = await prisma.client.delete({
+      where: {
+        id: clientId,
+        workspaceId: workspace.id,
+      },
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        workspaceId: workspace.id,
+        action: "CLIENT_DELETED",
+        entity: "Client",
+        entityId: client.id,
+      },
+    });
+
+    revalidatePath("/clients");
+
+    return client;
+  });
+}
