@@ -14,6 +14,7 @@ export default function RegisterPage() {
 
         <CardContent>
           <form action={signUpAction} className="space-y-4">
+            <Input name="workspaceName" type="text"placeholder="Workspace name" required />
             <Input name="email" type="email" placeholder="Email" required />
             <Input name="password" type="password" placeholder="Password" required />
 

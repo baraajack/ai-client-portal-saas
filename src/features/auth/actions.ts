@@ -2,16 +2,24 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { signInSchema, signUpSchema } from "@/features/auth/schemas";
+import { bootstrapUserWorkspace } from "@/features/auth/bootstrap";
 
 export async function signInAction(formData: FormData) {
-  const email = String(formData.get("email"));
-  const password = String(formData.get("password"));
+  const parsed = signInSchema.safeParse({
+    email: formData.get("email"),
+    password: formData.get("password"),
+  });
+
+  if (!parsed.success) {
+    redirect("/login?error=Invalid form data");
+  }
 
   const supabase = await createClient();
 
   const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
+    email: parsed.data.email,
+    password: parsed.data.password,
   });
 
   if (error) {
@@ -22,21 +30,34 @@ export async function signInAction(formData: FormData) {
 }
 
 export async function signUpAction(formData: FormData) {
-  const email = String(formData.get("email"));
-  const password = String(formData.get("password"));
+  const parsed = signUpSchema.safeParse({
+    workspaceName: formData.get("workspaceName"),
+    email: formData.get("email"),
+    password: formData.get("password"),
+  });
+
+  if (!parsed.success) {
+    redirect("/register?error=Invalid form data");
+  }
 
   const supabase = await createClient();
 
-  const { error } = await supabase.auth.signUp({
-    email,
-    password,
+  const { data, error } = await supabase.auth.signUp({
+    email: parsed.data.email,
+    password: parsed.data.password,
   });
 
-  if (error) {
+  if (error || !data.user) {
     redirect("/register?error=Could not create account");
   }
 
-  redirect("/login?message=Check your email to confirm your account");
+  await bootstrapUserWorkspace({
+    userId: data.user.id,
+    email: parsed.data.email,
+    workspaceName: parsed.data.workspaceName,
+  });
+
+  redirect("/dashboard");
 }
 
 export async function signOutAction() {
