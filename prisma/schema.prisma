@@ -30,13 +30,12 @@ enum TaskStatus {
 }
 
 model User {
-  id          String   @id @default(cuid())
+  id          String   @id
   email       String   @unique
   fullName    String?
   avatarUrl   String?
 
   memberships WorkspaceMember[]
-
   assignedTasks Task[] @relation("AssignedTasks")
 
   createdAt DateTime @default(now())
