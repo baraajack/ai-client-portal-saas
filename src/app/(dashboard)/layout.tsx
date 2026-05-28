@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { signOutAction } from "@/features/auth/actions";
-import { Button } from "@/components/ui/button";
+import { getCurrentWorkspace } from "@/lib/auth/current-workspace";
+import { DashboardSidebar } from "@/components/layout/dashboard-sidebar";
+import { DashboardTopbar } from "@/components/layout/dashboard-topbar";
 
 export default async function DashboardLayout({
   children,
@@ -14,26 +15,25 @@ export default async function DashboardLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (!user?.email) {
     redirect("/login");
   }
 
+  const { workspace, role } = await getCurrentWorkspace();
+
   return (
-    <div className="min-h-screen">
-      <header className="border-b px-6 py-4 flex items-center justify-between">
-        <div>
-          <p className="font-semibold">AI Client Portal</p>
-          <p className="text-sm text-muted-foreground">{user.email}</p>
-        </div>
+    <div className="flex min-h-screen bg-background">
+      <DashboardSidebar workspaceName={workspace.name} role={role} />
 
-        <form action={signOutAction}>
-          <Button variant="outline" type="submit">
-            Sign out
-          </Button>
-        </form>
-      </header>
+      <div className="flex min-h-screen flex-1 flex-col">
+        <DashboardTopbar
+          email={user.email}
+          role={role}
+          workspaceName={workspace.name}
+        />
 
-      <main className="p-6">{children}</main>
+        <main className="flex-1 p-4 lg:p-6">{children}</main>
+      </div>
     </div>
   );
 }
