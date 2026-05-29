@@ -1,3 +1,5 @@
+import { getInvitations } from "@/features/invitations/queries";
+import { InvitationsTable } from "@/features/invitations/components/invitations-table";
 import { getWorkspaceMembers } from "@/features/admin/queries";
 import { getWorkspaceSettings } from "@/features/admin/queries";
 import { MembersTable } from "@/features/admin/components/members-table";
@@ -5,11 +7,11 @@ import { WorkspaceSettingsCard } from "@/features/admin/components/workspace-set
 import { InviteMemberCard } from "@/features/admin/components/invite-member-card";
 
 export default async function AdminPage() {
-  const [members, workspace] =
-    await Promise.all([
-      getWorkspaceMembers(),
-      getWorkspaceSettings(),
-    ]);
+  const [members, workspace, invitations] = await Promise.all([
+    getWorkspaceMembers(),
+    getWorkspaceSettings(),
+    getInvitations(),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -29,6 +31,11 @@ export default async function AdminPage() {
       />
 
       <InviteMemberCard />
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">Pending Invitations</h2>
+          <InvitationsTable invitations={invitations} />
+        </section>
+
 
       <MembersTable members={members} />
     </div>

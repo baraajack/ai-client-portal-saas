@@ -29,6 +29,13 @@ enum TaskStatus {
   DONE
 }
 
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
 model User {
   id        String  @id
   email     String  @unique
@@ -38,6 +45,7 @@ model User {
   memberships   WorkspaceMember[]
   assignedTasks Task[]            @relation("AssignedTasks")
   auditLogs AuditLog[]
+  sentInvitations Invitation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -52,6 +60,8 @@ model Workspace {
   clients   Client[]
   projects  Project[]
   auditLogs AuditLog[]
+  invitations Invitation[]
+  
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -62,6 +72,7 @@ model WorkspaceMember {
 
   userId      String
   workspaceId String
+  
 
   role Role
 
@@ -176,4 +187,28 @@ model AuditLog {
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
+}
+
+model Invitation {
+  id          String @id @default(cuid())
+
+  workspaceId String
+  email       String
+  role        Role
+  token       String @unique
+  status      InvitationStatus @default(PENDING)
+
+  invitedById String?
+
+  expiresAt DateTime
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  invitedBy User? @relation(fields: [invitedById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId])
+  @@index([email])
+  @@index([token])
 }

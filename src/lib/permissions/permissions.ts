@@ -30,6 +30,11 @@ export const permissions = {
   auditLogs: {
   view: ["ADMIN", "MANAGER"],
   },
+  invitations: {
+  view: ["ADMIN", "MANAGER"],
+  create: ["ADMIN"],
+  revoke: ["ADMIN"],
+  },
  } as const satisfies Record<
   string,
   Record<string, readonly Role[]>
