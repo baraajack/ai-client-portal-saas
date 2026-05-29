@@ -1,8 +1,14 @@
-export default function FilesPage() {
+import { requirePermission } from "@/lib/permissions/require-permission";
+
+export default async function FilesPage() {
+  await requirePermission("files", "view");
+
   return (
     <div>
-      <h1>Files</h1>
-      <p>Manage files.</p>
+      <h1 className="text-2xl font-bold">Files</h1>
+      <p className="text-muted-foreground">
+        Files are organized under their related project pages.
+      </p>
     </div>
   );
 }

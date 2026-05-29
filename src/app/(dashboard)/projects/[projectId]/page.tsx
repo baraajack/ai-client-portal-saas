@@ -5,6 +5,9 @@ import { getProjectTasks } from "@/features/tasks/queries";
 import { getAssignableMembers } from "@/features/rbac/queries";
 import { CreateTaskDialog } from "@/features/tasks/components/create-task-dialog";
 import { TasksTable } from "@/features/tasks/components/tasks-table";
+import { getProjectFiles } from "@/features/files/queries";
+import { UploadFileForm } from "@/features/files/components/upload-file-form";
+import { ProjectFilesList } from "@/features/files/components/project-files-list";
 
 type ProjectDetailPageProps = {
   params: Promise<{
@@ -19,9 +22,10 @@ export default async function ProjectDetailPage({
 
   const project = await getProjectById(projectId);
   
-  const [tasks, members] = await Promise.all([
+  const [tasks, members, files] = await Promise.all([
   getProjectTasks(projectId),
   getAssignableMembers(),
+  getProjectFiles(projectId),
 ]);
 
   if (!project) {
@@ -77,10 +81,18 @@ export default async function ProjectDetailPage({
         </section>
 
         <section className="rounded-lg border p-6">
-          <h2 className="font-semibold">Files</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            File uploads will be added after task management.
-          </p>
+          <div className="mb-4 space-y-4">
+            <div>
+              <h2 className="font-semibold">Files</h2>
+              <p className="text-sm text-muted-foreground">
+                Upload and manage project documents.
+              </p>
+            </div>
+            
+            <UploadFileForm projectId={project.id} />
+          </div>
+          
+          <ProjectFilesList files={files} />
         </section>
       </div>
     </div>
