@@ -13,3 +13,20 @@ export async function getClients() {
     },
   });
 }
+
+export async function getClientsForProjectForm() {
+  const { workspace } = await requirePermission("projects", "create");
+
+  return prisma.client.findMany({
+    where: {
+      workspaceId: workspace.id,
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+    orderBy: {
+      name: "asc",
+    },
+  });
+}
