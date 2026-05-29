@@ -1,6 +1,10 @@
 import { notFound } from "next/navigation";
 import { getProjectById } from "@/features/projects/queries";
 import { ProjectStatusBadge } from "@/features/projects/components/project-status-badge";
+import { getProjectTasks } from "@/features/tasks/queries";
+import { getAssignableMembers } from "@/features/rbac/queries";
+import { CreateTaskDialog } from "@/features/tasks/components/create-task-dialog";
+import { TasksTable } from "@/features/tasks/components/tasks-table";
 
 type ProjectDetailPageProps = {
   params: Promise<{
@@ -14,6 +18,11 @@ export default async function ProjectDetailPage({
   const { projectId } = await params;
 
   const project = await getProjectById(projectId);
+  
+  const [tasks, members] = await Promise.all([
+  getProjectTasks(projectId),
+  getAssignableMembers(),
+]);
 
   if (!project) {
     notFound();
@@ -53,10 +62,18 @@ export default async function ProjectDetailPage({
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="rounded-lg border p-6">
-          <h2 className="font-semibold">Tasks</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Task management will be added in the next phase.
-          </p>
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <div>
+              <h2 className="font-semibold">Tasks</h2>
+              <p className="text-sm text-muted-foreground">
+                Manage project work items and status.
+              </p>
+            </div>
+            
+            <CreateTaskDialog projectId={project.id} members={members} />
+          </div>
+          
+          <TasksTable tasks={tasks} members={members} />
         </section>
 
         <section className="rounded-lg border p-6">
