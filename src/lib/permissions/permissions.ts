@@ -27,7 +27,10 @@ export const permissions = {
   admin: {
     view: ["ADMIN"],
   },
-} as const satisfies Record<
+  auditLogs: {
+  view: ["ADMIN", "MANAGER"],
+  },
+ } as const satisfies Record<
   string,
   Record<string, readonly Role[]>
 >;

@@ -37,6 +37,7 @@ model User {
 
   memberships   WorkspaceMember[]
   assignedTasks Task[]            @relation("AssignedTasks")
+  auditLogs AuditLog[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -159,15 +160,16 @@ model FileUpload {
 }
 
 model AuditLog {
-  id String @id @default(cuid())
+  id          String @id @default(cuid())
 
   workspaceId String
 
-  action   String
-  entity   String
-  entityId String
+  action      String
+  entity      String
+  entityId    String
 
-  actorId String?
+  actorId     String?
+  actor       User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
 
   metadata Json?
 

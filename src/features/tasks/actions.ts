@@ -1,5 +1,6 @@
 "use server";
 
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db/prisma";
 import { safeAction } from "@/lib/actions/safe-action";
@@ -21,6 +22,7 @@ function parseDueDate(value?: string) {
 export async function createTaskAction(projectId: string, formData: FormData) {
   return safeAction(async () => {
     const { workspace } = await assertPermission("tasks", "create");
+    const user = await getCurrentUser();
 
     const project = await prisma.project.findFirst({
       where: {
@@ -75,6 +77,7 @@ export async function createTaskAction(projectId: string, formData: FormData) {
 export async function updateTaskAction(taskId: string, formData: FormData) {
   return safeAction(async () => {
     const { workspace } = await assertPermission("tasks", "update");
+    const user = await getCurrentUser();
 
     const existingTask = await prisma.task.findFirst({
       where: {
@@ -126,6 +129,7 @@ export async function updateTaskAction(taskId: string, formData: FormData) {
         action: "TASK_UPDATED",
         entity: "Task",
         entityId: task.id,
+        actorId: user.id,
       },
     });
 
@@ -139,6 +143,7 @@ export async function updateTaskAction(taskId: string, formData: FormData) {
 export async function deleteTaskAction(taskId: string) {
   return safeAction(async () => {
     const { workspace } = await assertPermission("tasks", "delete");
+    const user = await getCurrentUser();
 
     const existingTask = await prisma.task.findFirst({
       where: {
@@ -168,6 +173,7 @@ export async function deleteTaskAction(taskId: string) {
         action: "TASK_DELETED",
         entity: "Task",
         entityId: task.id,
+        actorId: user.id,
       },
     });
 

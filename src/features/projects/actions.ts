@@ -1,5 +1,6 @@
 "use server";
 
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db/prisma";
 import { safeAction } from "@/lib/actions/safe-action";
@@ -9,6 +10,7 @@ import { projectSchema } from "@/features/projects/schemas";
 export async function createProjectAction(formData: FormData) {
   return safeAction(async () => {
     const { workspace } = await assertPermission("projects", "create");
+    const user = await getCurrentUser();
 
     const parsed = projectSchema.safeParse({
       name: formData.get("name"),
@@ -33,6 +35,7 @@ export async function createProjectAction(formData: FormData) {
 
     await prisma.auditLog.create({
       data: {
+        actorId: user.id,
         workspaceId: workspace.id,
         action: "PROJECT_CREATED",
         entity: "Project",
@@ -49,6 +52,7 @@ export async function createProjectAction(formData: FormData) {
 export async function updateProjectAction(projectId: string, formData: FormData) {
   return safeAction(async () => {
     const { workspace } = await assertPermission("projects", "update");
+    const user = await getCurrentUser();
 
     const parsed = projectSchema.safeParse({
       name: formData.get("name"),
@@ -78,6 +82,7 @@ export async function updateProjectAction(projectId: string, formData: FormData)
 
     await prisma.auditLog.create({
       data: {
+        actorId: user.id,
         workspaceId: workspace.id,
         action: "PROJECT_UPDATED",
         entity: "Project",
@@ -95,6 +100,7 @@ export async function updateProjectAction(projectId: string, formData: FormData)
 export async function deleteProjectAction(projectId: string) {
   return safeAction(async () => {
     const { workspace } = await assertPermission("projects", "delete");
+    const user = await getCurrentUser();
 
     const project = await prisma.project.delete({
       where: {
@@ -111,6 +117,7 @@ export async function deleteProjectAction(projectId: string) {
         action: "PROJECT_DELETED",
         entity: "Project",
         entityId: project.id,
+        actorId: user.id,
       },
     });
 

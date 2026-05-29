@@ -1,5 +1,6 @@
 "use server";
 
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db/prisma";
 import { safeAction } from "@/lib/actions/safe-action";
@@ -9,6 +10,7 @@ import { clientSchema } from "@/features/clients/schemas";
 export async function createClientAction(formData: FormData) {
   return safeAction(async () => {
     const { workspace } = await assertPermission("clients", "create");
+    const user = await getCurrentUser();
 
     const parsed = clientSchema.safeParse({
       name: formData.get("name"),
@@ -33,6 +35,7 @@ export async function createClientAction(formData: FormData) {
 
     await prisma.auditLog.create({
       data: {
+        actorId: user.id,
         workspaceId: workspace.id,
         action: "CLIENT_CREATED",
         entity: "Client",
@@ -49,6 +52,7 @@ export async function createClientAction(formData: FormData) {
 export async function updateClientAction(clientId: string, formData: FormData) {
   return safeAction(async () => {
     const { workspace } = await assertPermission("clients", "update");
+    const user = await getCurrentUser();
 
     const parsed = clientSchema.safeParse({
       name: formData.get("name"),
@@ -76,6 +80,7 @@ export async function updateClientAction(clientId: string, formData: FormData) {
 
     await prisma.auditLog.create({
       data: {
+        actorId: user.id,
         workspaceId: workspace.id,
         action: "CLIENT_UPDATED",
         entity: "Client",
@@ -92,6 +97,7 @@ export async function updateClientAction(clientId: string, formData: FormData) {
 export async function deleteClientAction(clientId: string) {
   return safeAction(async () => {
     const { workspace } = await assertPermission("clients", "delete");
+    const user = await getCurrentUser();
 
     const client = await prisma.client.delete({
       where: {
@@ -102,6 +108,7 @@ export async function deleteClientAction(clientId: string) {
 
     await prisma.auditLog.create({
       data: {
+        actorId: user.id,
         workspaceId: workspace.id,
         action: "CLIENT_DELETED",
         entity: "Client",

@@ -1,4 +1,5 @@
 import {
+  Activity,
   FolderKanban,
   LayoutDashboard,
   ListTodo,
@@ -52,4 +53,10 @@ export const dashboardNavItems: DashboardNavItem[] = [
     icon: Shield,
     roles: ["ADMIN"],
   },
+  {
+  title: "Audit Logs",
+  href: "/admin/audit-logs",
+  icon: Activity,
+  roles: ["ADMIN", "MANAGER"],
+},
 ];

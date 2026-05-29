@@ -1,6 +1,6 @@
 "use client";
 
-import { Client, ProjectStatus } from "@prisma/client";
+import { ProjectStatus } from "@prisma/client";
 import { Plus } from "lucide-react";
 import { createProjectAction } from "@/features/projects/actions";
 import { Button } from "@/components/ui/button";
@@ -43,16 +43,14 @@ export function CreateProjectDialog({ clients }: CreateProjectDialogProps) {
           <DialogTitle>Create project</DialogTitle>
         </DialogHeader>
 
-        <form 
-          action={async (formData) => {
-            await createProjectAction(formData);
-        }}
+        <form
+          action={createProjectAction as unknown as (formData: FormData) => void}
           className="space-y-4"
         >
           <Input name="name" placeholder="Project name" required />
-
+          
           <Textarea name="description" placeholder="Description" />
-
+          
           <select
             name="clientId"
             defaultValue=""
@@ -65,21 +63,19 @@ export function CreateProjectDialog({ clients }: CreateProjectDialogProps) {
               </option>
             ))}
           </select>
-
+          
           <select
-            name="clientId"
-            defaultValue=""
+            name="status"
+            defaultValue={ProjectStatus.PLANNING}
             className="w-full rounded-md border bg-background px-3 py-2 text-sm"
           >
-            <option value="">No client</option>
-            
-            {clients.map((client) => (
-              <option key={client.id} value={client.id}>
-                {client.name}
+            {Object.values(ProjectStatus).map((status) => (
+              <option key={status} value={status}>
+                {status.replaceAll("_", " ")}
               </option>
-            ))}
+           ))}
           </select>
-
+          
           <Button type="submit" className="w-full">
             Create project
           </Button>
