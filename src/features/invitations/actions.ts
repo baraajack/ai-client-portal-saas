@@ -1,5 +1,6 @@
 "use server";
 
+import { env } from "@/env";
 import { sendInvitationEmail } from "@/features/invitations/email";
 import crypto from "crypto";
 import { redirect } from "next/navigation";
@@ -53,7 +54,8 @@ export async function createInvitationAction(formData: FormData) {
       },
     });
 
-    const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${invitation.token}`;
+    const inviteUrl =
+  `${env.NEXT_PUBLIC_APP_URL}/invite/${invitation.token}`;
     
     try {
       await sendInvitationEmail({

@@ -1,5 +1,7 @@
+import { env } from "@/env";
+
 export const FILE_BUCKET =
-  process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET ?? "project-files";
+  env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET
 
 export const MAX_FILE_SIZE = 10 * 1024 * 1024;
 

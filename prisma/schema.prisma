@@ -37,7 +37,7 @@ enum InvitationStatus {
 }
 
 model User {
-  id        String  @id
+  id String @id @default(cuid())
   email     String  @unique
   fullName  String?
   avatarUrl String?
@@ -102,6 +102,7 @@ model Client {
   updatedAt DateTime @updatedAt
 
   @@unique([id, workspaceId])
+  @@index([workspaceId])
 }
 
 model Project {
@@ -126,6 +127,8 @@ model Project {
   updatedAt DateTime @updatedAt
 
   @@unique([id, workspaceId])
+  @@index([workspaceId])
+  @@index([clientId])
 }
 
 model Task {
@@ -148,6 +151,8 @@ model Task {
   updatedAt DateTime @updatedAt
 
   @@unique([id, projectId])
+  @@index([projectId])
+  @@index([assignedToId])
 }
 
 model FileUpload {
@@ -168,6 +173,7 @@ model FileUpload {
   createdAt DateTime @default(now())
 
   @@unique([id, projectId])
+  @@index([projectId])
 }
 
 model AuditLog {
@@ -187,6 +193,10 @@ model AuditLog {
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
+
+  @@index([workspaceId])
+  @@index([actorId])
+  @@index([createdAt])
 }
 
 model Invitation {

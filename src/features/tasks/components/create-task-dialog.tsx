@@ -31,7 +31,10 @@ type CreateTaskDialogProps = {
 };
 
 export function CreateTaskDialog({ projectId, members }: CreateTaskDialogProps) {
-  const createTaskWithProject = createTaskAction.bind(null, projectId);
+  const createTaskWithProject = createTaskAction.bind(
+    null,
+    projectId
+  ) as unknown as (formData: FormData) => void;
 
   return (
     <Dialog>

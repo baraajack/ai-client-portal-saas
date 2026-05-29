@@ -1,11 +1,30 @@
 "use server";
 
+import { headers } from "next/headers";
+import { authRateLimit } from "@/lib/security/rate-limit";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signInSchema, signUpSchema } from "@/features/auth/schemas";
 import { bootstrapUserWorkspace } from "@/features/auth/bootstrap";
 
+async function getIpAddress() {
+  const headersList = await headers();
+
+  return (
+    headersList.get("x-forwarded-for")?.split(",")[0] ??
+    headersList.get("x-real-ip") ??
+    "unknown"
+  );
+}
 export async function signInAction(formData: FormData) {
+  const ip = await getIpAddress();
+  
+  const { success } = await authRateLimit.limit(`auth:${ip}`);
+  
+  if (!success) {
+    redirect("/login?error=Too many requests");
+  }
+  
   const parsed = signInSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
@@ -30,6 +49,14 @@ export async function signInAction(formData: FormData) {
 }
 
 export async function signUpAction(formData: FormData) {
+  const ip = await getIpAddress();
+  
+  const { success } = await authRateLimit.limit(`auth:${ip}`);
+  
+  if (!success) {
+    redirect("/login?error=Too many requests");
+  }
+  
   const parsed = signUpSchema.safeParse({
     workspaceName: formData.get("workspaceName"),
     email: formData.get("email"),
