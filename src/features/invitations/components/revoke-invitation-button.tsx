@@ -8,8 +8,13 @@ export function RevokeInvitationButton({
 }: {
   invitationId: string;
 }) {
+  const revokeAction = revokeInvitationAction.bind(
+    null,
+    invitationId
+  ) as unknown as (formData: FormData) => void;
+
   return (
-    <form action={() => revokeInvitationAction(invitationId)}>
+    <form action={revokeAction}>
       <Button type="submit" variant="destructive" size="sm">
         Revoke
       </Button>

@@ -7,7 +7,10 @@ import { Input } from "@/components/ui/input";
 
 export function CreateInvitationForm() {
   return (
-    <form action={createInvitationAction} className="flex gap-2">
+    <form
+      action={createInvitationAction as unknown as (formData: FormData) => void}
+      className="flex gap-2"
+    >
       <Input name="email" type="email" placeholder="Email" required />
 
       <select name="role" defaultValue="CLIENT" className="rounded-md border px-3">

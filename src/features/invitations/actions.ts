@@ -1,5 +1,6 @@
 "use server";
 
+import { sendInvitationEmail } from "@/features/invitations/email";
 import crypto from "crypto";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -52,6 +53,19 @@ export async function createInvitationAction(formData: FormData) {
       },
     });
 
+    const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${invitation.token}`;
+    
+    try {
+      await sendInvitationEmail({
+        to: invitation.email,
+        workspaceName: workspace.name,
+        inviteUrl,
+        role: invitation.role,
+      });
+    } catch (error) {
+      console.error("Invitation email failed:", error);
+    }
+
     await prisma.auditLog.create({
       data: {
         workspaceId: workspace.id,
@@ -61,6 +75,7 @@ export async function createInvitationAction(formData: FormData) {
         actorId: user.id,
       },
     });
+    
 
     revalidatePath("/admin");
 
