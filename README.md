@@ -232,6 +232,25 @@ npm run build         # Production build
 
 GitHub Actions runs linting, unit tests, and a production build on the main branch workflow. A separate pull request workflow runs Playwright.
 
+## Docker
+
+The production image uses the minimal Next.js standalone server and runs as a non-root user. It connects to Supabase Cloud using runtime environment variables; Docker Compose does not start a local database.
+
+Create `.env.local` from `.env.example`, then build and run the web container:
+
+```bash
+cp .env.example .env.local
+docker compose --env-file .env.local up --build
+```
+
+Open [http://localhost:3000](http://localhost:3000). Stop the container with:
+
+```bash
+docker compose down
+```
+
+Only `NEXT_PUBLIC_*` variables are passed as image build arguments because they are browser-visible by design. Database credentials, the Supabase service role key, Resend credentials, and Upstash credentials are injected when the container starts and are not copied into the image.
+
 ## Vercel Deployment
 
 1. Import the repository into Vercel.
