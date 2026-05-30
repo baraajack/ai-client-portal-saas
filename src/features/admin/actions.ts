@@ -56,13 +56,29 @@ export async function updateMemberRoleAction(
         );
     }
 
-    await prisma.workspaceMember.update({
-      where: {
-        id: member.id,
-      },
-      data: {
-        role: parsed.data.role,
-      },
+    await prisma.$transaction(async (tx) => {
+      await tx.workspaceMember.update({
+        where: {
+          id: member.id,
+        },
+        data: {
+          role: parsed.data.role,
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          workspaceId: workspace.id,
+          action: "ADMIN_ROLE_UPDATED",
+          entity: "WorkspaceMember",
+          entityId: member.id,
+          actorId: currentUser.id,
+          metadata: {
+            previousRole: member.role,
+            newRole: parsed.data.role,
+          },
+        },
+      });
     });
 
     revalidatePath("/admin");
@@ -74,6 +90,7 @@ export async function updateWorkspaceNameAction(
 ) {
   return safeAction(async () => {
     const { workspace } = await assertPermission("admin", "view");
+    const currentUser = await getCurrentUser();
 
     const name = String(formData.get("name"));
 
@@ -81,13 +98,29 @@ export async function updateWorkspaceNameAction(
       throw new Error("Workspace name is required.");
     }
 
-    await prisma.workspace.update({
-      where: {
-        id: workspace.id,
-      },
-      data: {
-        name,
-      },
+    await prisma.$transaction(async (tx) => {
+      await tx.workspace.update({
+        where: {
+          id: workspace.id,
+        },
+        data: {
+          name,
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          workspaceId: workspace.id,
+          action: "WORKSPACE_UPDATED",
+          entity: "Workspace",
+          entityId: workspace.id,
+          actorId: currentUser.id,
+          metadata: {
+            previousName: workspace.name,
+            newName: name,
+          },
+        },
+      });
     });
 
     revalidatePath("/admin");
