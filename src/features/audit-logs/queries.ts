@@ -19,7 +19,7 @@ export async function getAuditLogs() {
 }
 
 export async function getRecentAuditLogs(limit = 5) {
-  const { workspace } = await requirePermission("projects", "view");
+  const { workspace } = await requirePermission("auditLogs", "view");
 
   return prisma.auditLog.findMany({
     where: {

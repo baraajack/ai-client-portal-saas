@@ -14,7 +14,7 @@ export const permissions = {
     delete: ["ADMIN"],
   },
   tasks: {
-    view: ["ADMIN", "MANAGER", "TEAM_MEMBER"],
+    view: ["ADMIN", "MANAGER", "TEAM_MEMBER", "CLIENT"],
     create: ["ADMIN", "MANAGER"],
     update: ["ADMIN", "MANAGER", "TEAM_MEMBER"],
     delete: ["ADMIN", "MANAGER"],

@@ -19,9 +19,14 @@ type ProjectsTableProps = {
     id: string;
     name: string;
   }[];
+  canMutate?: boolean;
 };
 
-export function ProjectsTable({ projects, clients }: ProjectsTableProps) {
+export function ProjectsTable({
+  projects,
+  clients,
+  canMutate = true,
+}: ProjectsTableProps) {
   if (projects.length === 0) {
     return (
       <div className="rounded-lg border p-8 text-center text-muted-foreground">
@@ -60,8 +65,12 @@ export function ProjectsTable({ projects, clients }: ProjectsTableProps) {
                     <Link href={`/projects/${project.id}`}>View</Link>
                   </Button>
 
-                  <EditProjectDialog project={project} clients={clients} />
-                  <DeleteProjectButton projectId={project.id} />
+                  {canMutate && (
+                    <>
+                      <EditProjectDialog project={project} clients={clients} />
+                      <DeleteProjectButton projectId={project.id} />
+                    </>
+                  )}
                 </div>
               </td>
             </tr>

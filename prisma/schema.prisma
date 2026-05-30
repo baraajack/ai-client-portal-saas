@@ -17,8 +17,27 @@ model User {
   updatedAt       DateTime          @updatedAt
   auditLogs       AuditLog[]
   sentInvitations Invitation[]
+  notifications Notification[]
   assignedTasks   Task[]            @relation("AssignedTasks")
   memberships     WorkspaceMember[]
+  clientProfiles  Client[]          @relation("ClientPortalUser")
+}
+
+model Notification {
+  id String @id @default(cuid())
+
+  userId String
+
+  title String
+  message String
+
+  read Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields:[userId], references:[id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Workspace {
@@ -49,6 +68,7 @@ model WorkspaceMember {
 model Client {
   id          String    @id @default(cuid())
   workspaceId String
+  portalUserId String?
   name        String
   email       String?
   company     String?
@@ -56,10 +76,13 @@ model Client {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  portalUser  User?     @relation("ClientPortalUser", fields: [portalUserId], references: [id], onDelete: SetNull)
   projects    Project[]
 
   @@unique([id, workspaceId])
+  @@unique([workspaceId, portalUserId])
   @@index([workspaceId])
+  @@index([portalUserId])
 }
 
 model Project {

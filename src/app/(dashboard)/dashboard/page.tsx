@@ -4,7 +4,8 @@ import { RecentActivity } from "@/features/audit-logs/components/recent-activity
 
 export default async function DashboardPage() {
   const { workspace, role } = await getCurrentWorkspace();
-  const logs = await getRecentAuditLogs(5);
+  const canViewActivity = role === "ADMIN" || role === "MANAGER";
+  const logs = canViewActivity ? await getRecentAuditLogs(5) : [];
 
   return (
     <div className="space-y-6">
@@ -20,10 +21,12 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Recent activity</h2>
-        <RecentActivity logs={logs} />
-      </section>
+      {canViewActivity && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold">Recent activity</h2>
+          <RecentActivity logs={logs} />
+        </section>
+      )}
     </div>
   );
 }

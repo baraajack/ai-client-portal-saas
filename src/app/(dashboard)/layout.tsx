@@ -1,3 +1,5 @@
+
+import { CommandPalette } from "@/components/search/command-palette";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentWorkspace } from "@/lib/auth/current-workspace";
@@ -23,6 +25,8 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-background">
+      <CommandPalette />
+      
       <DashboardSidebar workspaceName={workspace.name} role={role} />
 
       <div className="flex min-h-screen flex-1 flex-col">

@@ -1,12 +1,15 @@
 import { prisma } from "@/lib/db/prisma";
+import { getCurrentClient } from "@/lib/auth/current-client";
 import { requirePermission } from "@/lib/permissions/require-permission";
 
 export async function getProjects() {
   const { workspace } = await requirePermission("projects", "view");
+  const client = await getCurrentClient();
 
   return prisma.project.findMany({
     where: {
       workspaceId: workspace.id,
+      ...(client ? { clientId: client.id } : {}),
     },
     include: {
       client: true,
@@ -25,11 +28,13 @@ export async function getProjects() {
 
 export async function getProjectById(projectId: string) {
   const { workspace } = await requirePermission("projects", "view");
+  const client = await getCurrentClient();
 
   return prisma.project.findFirst({
     where: {
       id: projectId,
       workspaceId: workspace.id,
+      ...(client ? { clientId: client.id } : {}),
     },
     include: {
       client: true,

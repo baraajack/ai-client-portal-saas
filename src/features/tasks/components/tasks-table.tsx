@@ -17,12 +17,14 @@ type TasksTableProps = {
   tasks: TaskWithRelations[];
   members: MemberWithUser[];
   showProject?: boolean;
+  canMutate?: boolean;
 };
 
 export function TasksTable({
   tasks,
   members,
   showProject = false,
+  canMutate = true,
 }: TasksTableProps) {
   if (tasks.length === 0) {
     return (
@@ -44,7 +46,9 @@ export function TasksTable({
             <th className="px-4 py-3 text-left font-medium">Assignee</th>
             <th className="px-4 py-3 text-left font-medium">Status</th>
             <th className="px-4 py-3 text-left font-medium">Due date</th>
-            <th className="px-4 py-3 text-right font-medium">Actions</th>
+            {canMutate && (
+              <th className="px-4 py-3 text-right font-medium">Actions</th>
+            )}
           </tr>
         </thead>
 
@@ -74,11 +78,13 @@ export function TasksTable({
                 {task.dueDate ? format(task.dueDate, "PPP") : "-"}
               </td>
 
-              <td className="px-4 py-3 text-right">
-                <div className="flex justify-end gap-2">
-                  <DeleteTaskButton taskId={task.id} />
-                </div>
-              </td>
+              {canMutate && (
+                <td className="px-4 py-3 text-right">
+                  <div className="flex justify-end gap-2">
+                    <DeleteTaskButton taskId={task.id} />
+                  </div>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>

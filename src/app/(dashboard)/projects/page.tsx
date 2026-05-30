@@ -1,12 +1,16 @@
 import { getClientsForProjectForm } from "@/features/clients/queries";
 import { getProjects } from "@/features/projects/queries";
+import { getCurrentWorkspace } from "@/lib/auth/current-workspace";
 import { CreateProjectDialog } from "@/features/projects/components/create-project-dialog";
 import { ProjectsTable } from "@/features/projects/components/projects-table";
 
 export default async function ProjectsPage() {
+  const { role } = await getCurrentWorkspace();
+  const canCreateProject = role === "ADMIN" || role === "MANAGER";
+  const canMutateProject = role !== "CLIENT";
   const [projects, clients] = await Promise.all([
     getProjects(),
-    getClientsForProjectForm(),
+    canCreateProject ? getClientsForProjectForm() : Promise.resolve([]),
   ]);
 
   return (
@@ -19,10 +23,14 @@ export default async function ProjectsPage() {
           </p>
         </div>
 
-        <CreateProjectDialog clients={clients} />
+        {canCreateProject && <CreateProjectDialog clients={clients} />}
       </div>
 
-      <ProjectsTable projects={projects} clients={clients} />
+      <ProjectsTable
+        projects={projects}
+        clients={clients}
+        canMutate={canMutateProject}
+      />
     </div>
   );
 }

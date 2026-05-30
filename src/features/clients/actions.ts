@@ -23,24 +23,28 @@ export async function createClientAction(formData: FormData) {
       throw new Error("Invalid client data.");
     }
 
-    const client = await prisma.client.create({
-      data: {
-        workspaceId: workspace.id,
-        name: parsed.data.name,
-        email: parsed.data.email || null,
-        company: parsed.data.company || null,
-        notes: parsed.data.notes || null,
-      },
-    });
+    const client = await prisma.$transaction(async (tx) => {
+      const createdClient = await tx.client.create({
+        data: {
+          workspaceId: workspace.id,
+          name: parsed.data.name,
+          email: parsed.data.email || null,
+          company: parsed.data.company || null,
+          notes: parsed.data.notes || null,
+        },
+      });
 
-    await prisma.auditLog.create({
-      data: {
-        actorId: user.id,
-        workspaceId: workspace.id,
-        action: "CLIENT_CREATED",
-        entity: "Client",
-        entityId: client.id,
-      },
+      await tx.auditLog.create({
+        data: {
+          actorId: user.id,
+          workspaceId: workspace.id,
+          action: "CLIENT_CREATED",
+          entity: "Client",
+          entityId: createdClient.id,
+        },
+      });
+
+      return createdClient;
     });
 
     revalidatePath("/clients");
@@ -65,27 +69,31 @@ export async function updateClientAction(clientId: string, formData: FormData) {
       throw new Error("Invalid client data.");
     }
 
-    const client = await prisma.client.update({
-      where: {
-        id: clientId,
-        workspaceId: workspace.id,
-      },
-      data: {
-        name: parsed.data.name,
-        email: parsed.data.email || null,
-        company: parsed.data.company || null,
-        notes: parsed.data.notes || null,
-      },
-    });
+    const client = await prisma.$transaction(async (tx) => {
+      const updatedClient = await tx.client.update({
+        where: {
+          id: clientId,
+          workspaceId: workspace.id,
+        },
+        data: {
+          name: parsed.data.name,
+          email: parsed.data.email || null,
+          company: parsed.data.company || null,
+          notes: parsed.data.notes || null,
+        },
+      });
 
-    await prisma.auditLog.create({
-      data: {
-        actorId: user.id,
-        workspaceId: workspace.id,
-        action: "CLIENT_UPDATED",
-        entity: "Client",
-        entityId: client.id,
-      },
+      await tx.auditLog.create({
+        data: {
+          actorId: user.id,
+          workspaceId: workspace.id,
+          action: "CLIENT_UPDATED",
+          entity: "Client",
+          entityId: updatedClient.id,
+        },
+      });
+
+      return updatedClient;
     });
 
     revalidatePath("/clients");
@@ -99,21 +107,25 @@ export async function deleteClientAction(clientId: string) {
     const { workspace } = await assertPermission("clients", "delete");
     const user = await getCurrentUser();
 
-    const client = await prisma.client.delete({
-      where: {
-        id: clientId,
-        workspaceId: workspace.id,
-      },
-    });
+    const client = await prisma.$transaction(async (tx) => {
+      const deletedClient = await tx.client.delete({
+        where: {
+          id: clientId,
+          workspaceId: workspace.id,
+        },
+      });
 
-    await prisma.auditLog.create({
-      data: {
-        actorId: user.id,
-        workspaceId: workspace.id,
-        action: "CLIENT_DELETED",
-        entity: "Client",
-        entityId: client.id,
-      },
+      await tx.auditLog.create({
+        data: {
+          actorId: user.id,
+          workspaceId: workspace.id,
+          action: "CLIENT_DELETED",
+          entity: "Client",
+          entityId: deletedClient.id,
+        },
+      });
+
+      return deletedClient;
     });
 
     revalidatePath("/clients");

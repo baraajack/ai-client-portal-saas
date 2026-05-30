@@ -1,11 +1,14 @@
 import { getTasks } from "@/features/tasks/queries";
 import { getAssignableMembers } from "@/features/rbac/queries";
+import { getCurrentWorkspace } from "@/lib/auth/current-workspace";
 import { TasksTable } from "@/features/tasks/components/tasks-table";
 
 export default async function TasksPage() {
+  const { role } = await getCurrentWorkspace();
+  const canMutateTask = role !== "CLIENT";
   const [tasks, members] = await Promise.all([
     getTasks(),
-    getAssignableMembers(),
+    canMutateTask ? getAssignableMembers() : Promise.resolve([]),
   ]);
 
   return (
@@ -17,7 +20,12 @@ export default async function TasksPage() {
         </p>
       </div>
 
-      <TasksTable tasks={tasks} members={members} showProject />
+      <TasksTable
+        tasks={tasks}
+        members={members}
+        showProject
+        canMutate={canMutateTask}
+      />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { getCurrentWorkspace } from "@/lib/auth/current-workspace";
 import { getProjectById } from "@/features/projects/queries";
 import { ProjectStatusBadge } from "@/features/projects/components/project-status-badge";
 import { getProjectTasks } from "@/features/tasks/queries";
@@ -21,16 +22,18 @@ export default async function ProjectDetailPage({
   const { projectId } = await params;
 
   const project = await getProjectById(projectId);
-  
-  const [tasks, members, files] = await Promise.all([
-  getProjectTasks(projectId),
-  getAssignableMembers(),
-  getProjectFiles(projectId),
-]);
 
   if (!project) {
     notFound();
   }
+
+  const { role } = await getCurrentWorkspace();
+  const canMutate = role !== "CLIENT";
+  const [tasks, members, files] = await Promise.all([
+    getProjectTasks(projectId),
+    canMutate ? getAssignableMembers() : Promise.resolve([]),
+    getProjectFiles(projectId),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -74,10 +77,12 @@ export default async function ProjectDetailPage({
               </p>
             </div>
             
-            <CreateTaskDialog projectId={project.id} members={members} />
+            {canMutate && (
+              <CreateTaskDialog projectId={project.id} members={members} />
+            )}
           </div>
           
-          <TasksTable tasks={tasks} members={members} />
+          <TasksTable tasks={tasks} members={members} canMutate={canMutate} />
         </section>
 
         <section className="rounded-lg border p-6">
@@ -89,10 +94,10 @@ export default async function ProjectDetailPage({
               </p>
             </div>
             
-            <UploadFileForm projectId={project.id} />
+            {canMutate && <UploadFileForm projectId={project.id} />}
           </div>
           
-          <ProjectFilesList files={files} />
+          <ProjectFilesList files={files} canMutate={canMutate} />
         </section>
       </div>
     </div>

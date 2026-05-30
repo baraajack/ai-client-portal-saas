@@ -43,20 +43,34 @@ export async function createInvitationAction(formData: FormData) {
       throw new Error("User is already a member.");
     }
 
-    const invitation = await prisma.invitation.create({
-      data: {
-        workspaceId: workspace.id,
-        email: parsed.data.email.toLowerCase(),
-        role: parsed.data.role,
-        token: createInviteToken(),
-        invitedById: user.id,
-        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
-      },
+    const invitation = await prisma.$transaction(async (tx) => {
+      const createdInvitation = await tx.invitation.create({
+        data: {
+          workspaceId: workspace.id,
+          email: parsed.data.email.toLowerCase(),
+          role: parsed.data.role,
+          token: createInviteToken(),
+          invitedById: user.id,
+          expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          workspaceId: workspace.id,
+          action: "INVITATION_CREATED",
+          entity: "Invitation",
+          entityId: createdInvitation.id,
+          actorId: user.id,
+        },
+      });
+
+      return createdInvitation;
     });
 
     const inviteUrl =
-  `${env.NEXT_PUBLIC_APP_URL}/invite/${invitation.token}`;
-    
+      `${env.NEXT_PUBLIC_APP_URL}/invite/${invitation.token}`;
+
     try {
       await sendInvitationEmail({
         to: invitation.email,
@@ -67,17 +81,6 @@ export async function createInvitationAction(formData: FormData) {
     } catch (error) {
       console.error("Invitation email failed:", error);
     }
-
-    await prisma.auditLog.create({
-      data: {
-        workspaceId: workspace.id,
-        action: "INVITATION_CREATED",
-        entity: "Invitation",
-        entityId: invitation.id,
-        actorId: user.id,
-      },
-    });
-    
 
     revalidatePath("/admin");
 
@@ -102,23 +105,25 @@ export async function revokeInvitationAction(invitationId: string) {
       throw new Error("Invitation not found.");
     }
 
-    await prisma.invitation.update({
-      where: {
-        id: invitation.id,
-      },
-      data: {
-        status: "REVOKED",
-      },
-    });
+    await prisma.$transaction(async (tx) => {
+      await tx.invitation.update({
+        where: {
+          id: invitation.id,
+        },
+        data: {
+          status: "REVOKED",
+        },
+      });
 
-    await prisma.auditLog.create({
-      data: {
-        workspaceId: workspace.id,
-        action: "INVITATION_REVOKED",
-        entity: "Invitation",
-        entityId: invitation.id,
-        actorId: user.id,
-      },
+      await tx.auditLog.create({
+        data: {
+          workspaceId: workspace.id,
+          action: "INVITATION_REVOKED",
+          entity: "Invitation",
+          entityId: invitation.id,
+          actorId: user.id,
+        },
+      });
     });
 
     revalidatePath("/admin");
@@ -197,6 +202,40 @@ export async function acceptInvitationAction(token: string) {
         role: invitation.role,
       },
     });
+
+    if (invitation.role === "CLIENT") {
+      const matchingClients = await tx.client.findMany({
+        where: {
+          workspaceId: invitation.workspaceId,
+          email: {
+            equals: authUser.email!,
+            mode: "insensitive",
+          },
+        },
+        select: {
+          id: true,
+          portalUserId: true,
+        },
+        take: 2,
+      });
+
+      if (
+        matchingClients.length !== 1 ||
+        (matchingClients[0].portalUserId &&
+          matchingClients[0].portalUserId !== authUser.id)
+      ) {
+        throw new Error("Client profile could not be linked.");
+      }
+
+      await tx.client.update({
+        where: {
+          id: matchingClients[0].id,
+        },
+        data: {
+          portalUserId: authUser.id,
+        },
+      });
+    }
 
     await tx.invitation.update({
       where: {

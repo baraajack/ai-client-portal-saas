@@ -1,16 +1,19 @@
 import { prisma } from "@/lib/db/prisma";
+import { getCurrentClient } from "@/lib/auth/current-client";
 import { requirePermission } from "@/lib/permissions/require-permission";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { FILE_BUCKET } from "@/features/files/constants";
 
 export async function getProjectFiles(projectId: string) {
   const { workspace } = await requirePermission("files", "view");
+  const client = await getCurrentClient();
 
   return prisma.fileUpload.findMany({
     where: {
       projectId,
       project: {
         workspaceId: workspace.id,
+        ...(client ? { clientId: client.id } : {}),
       },
     },
     orderBy: {
@@ -21,12 +24,14 @@ export async function getProjectFiles(projectId: string) {
 
 export async function getSignedFileUrl(fileId: string) {
   const { workspace } = await requirePermission("files", "view");
+  const client = await getCurrentClient();
 
   const file = await prisma.fileUpload.findFirst({
     where: {
       id: fileId,
       project: {
         workspaceId: workspace.id,
+        ...(client ? { clientId: client.id } : {}),
       },
     },
   });

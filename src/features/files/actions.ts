@@ -66,26 +66,37 @@ export async function uploadProjectFileAction(
       throw new Error("File upload failed.");
     }
 
-    const uploadedFile = await prisma.fileUpload.create({
-      data: {
-        projectId: project.id,
-        fileName: file.name,
-        filePath,
-        fileSize: file.size,
-        mimeType: file.type,
-        uploadedById: user.id,
-      },
-    });
+    let uploadedFile;
 
-    await prisma.auditLog.create({
-      data: {
-        workspaceId: workspace.id,
-        action: "FILE_UPLOADED",
-        entity: "FileUpload",
-        entityId: uploadedFile.id,
-        actorId: user.id,
-      },
-    });
+    try {
+      uploadedFile = await prisma.$transaction(async (tx) => {
+        const createdFile = await tx.fileUpload.create({
+          data: {
+            projectId: project.id,
+            fileName: file.name,
+            filePath,
+            fileSize: file.size,
+            mimeType: file.type,
+            uploadedById: user.id,
+          },
+        });
+
+        await tx.auditLog.create({
+          data: {
+            workspaceId: workspace.id,
+            action: "FILE_UPLOADED",
+            entity: "FileUpload",
+            entityId: createdFile.id,
+            actorId: user.id,
+          },
+        });
+
+        return createdFile;
+      });
+    } catch (error) {
+      await supabaseAdmin.storage.from(FILE_BUCKET).remove([filePath]);
+      throw error;
+    }
 
     revalidatePath("/files");
     revalidatePath(`/projects/${project.id}`);
@@ -115,25 +126,33 @@ export async function deleteProjectFileAction(fileId: string) {
       throw new Error("File not found.");
     }
 
-    await supabaseAdmin.storage.from(FILE_BUCKET).remove([file.filePath]);
+    const { error: removeError } = await supabaseAdmin.storage
+      .from(FILE_BUCKET)
+      .remove([file.filePath]);
 
-    await prisma.fileUpload.delete({
-      where: {
-        id_projectId: {
-          id: file.id,
-          projectId: file.projectId,
+    if (removeError) {
+      throw new Error("File deletion failed.");
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.fileUpload.delete({
+        where: {
+          id_projectId: {
+            id: file.id,
+            projectId: file.projectId,
+          },
         },
-      },
-    });
+      });
 
-    await prisma.auditLog.create({
-      data: {
-        workspaceId: workspace.id,
-        action: "FILE_DELETED",
-        entity: "FileUpload",
-        entityId: file.id,
-        actorId: user.id,
-      },
+      await tx.auditLog.create({
+        data: {
+          workspaceId: workspace.id,
+          action: "FILE_DELETED",
+          entity: "FileUpload",
+          entityId: file.id,
+          actorId: user.id,
+        },
+      });
     });
 
     revalidatePath("/files");

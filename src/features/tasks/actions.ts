@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db/prisma";
 import { safeAction } from "@/lib/actions/safe-action";
 import { assertPermission } from "@/lib/permissions/assert-permission";
+import { assertAssigneeBelongsToWorkspace } from "@/lib/permissions/assert-workspace-relations";
 import { taskSchema } from "@/features/tasks/schemas";
 
 function parseDueDate(value?: string) {
@@ -47,24 +48,32 @@ export async function createTaskAction(projectId: string, formData: FormData) {
       throw new Error("Invalid task data.");
     }
 
-    const task = await prisma.task.create({
-      data: {
-        projectId: project.id,
-        title: parsed.data.title,
-        description: parsed.data.description || null,
-        assignedToId: parsed.data.assignedToId || null,
-        status: parsed.data.status,
-        dueDate: parseDueDate(parsed.data.dueDate),
-      },
-    });
+    const assignedToId = parsed.data.assignedToId || null;
+    await assertAssigneeBelongsToWorkspace(assignedToId, workspace.id);
 
-    await prisma.auditLog.create({
-      data: {
-        workspaceId: workspace.id,
-        action: "TASK_CREATED",
-        entity: "Task",
-        entityId: task.id,
-      },
+    const task = await prisma.$transaction(async (tx) => {
+      const createdTask = await tx.task.create({
+        data: {
+          projectId: project.id,
+          title: parsed.data.title,
+          description: parsed.data.description || null,
+          assignedToId,
+          status: parsed.data.status,
+          dueDate: parseDueDate(parsed.data.dueDate),
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          workspaceId: workspace.id,
+          action: "TASK_CREATED",
+          entity: "Task",
+          entityId: createdTask.id,
+          actorId: user.id,
+        },
+      });
+
+      return createdTask;
     });
 
     revalidatePath("/tasks");
@@ -107,30 +116,37 @@ export async function updateTaskAction(taskId: string, formData: FormData) {
       throw new Error("Invalid task data.");
     }
 
-    const task = await prisma.task.update({
-      where: {
-        id_projectId: {
-          id: taskId,
-          projectId: existingTask.projectId,
-        },
-      },
-      data: {
-        title: parsed.data.title,
-        description: parsed.data.description || null,
-        assignedToId: parsed.data.assignedToId || null,
-        status: parsed.data.status,
-        dueDate: parseDueDate(parsed.data.dueDate),
-      },
-    });
+    const assignedToId = parsed.data.assignedToId || null;
+    await assertAssigneeBelongsToWorkspace(assignedToId, workspace.id);
 
-    await prisma.auditLog.create({
-      data: {
-        workspaceId: workspace.id,
-        action: "TASK_UPDATED",
-        entity: "Task",
-        entityId: task.id,
-        actorId: user.id,
-      },
+    const task = await prisma.$transaction(async (tx) => {
+      const updatedTask = await tx.task.update({
+        where: {
+          id_projectId: {
+            id: taskId,
+            projectId: existingTask.projectId,
+          },
+        },
+        data: {
+          title: parsed.data.title,
+          description: parsed.data.description || null,
+          assignedToId,
+          status: parsed.data.status,
+          dueDate: parseDueDate(parsed.data.dueDate),
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          workspaceId: workspace.id,
+          action: "TASK_UPDATED",
+          entity: "Task",
+          entityId: updatedTask.id,
+          actorId: user.id,
+        },
+      });
+
+      return updatedTask;
     });
 
     revalidatePath("/tasks");
@@ -158,23 +174,27 @@ export async function deleteTaskAction(taskId: string) {
       throw new Error("Task not found.");
     }
 
-    const task = await prisma.task.delete({
-      where: {
-        id_projectId: {
-          id: taskId,
-          projectId: existingTask.projectId,
+    const task = await prisma.$transaction(async (tx) => {
+      const deletedTask = await tx.task.delete({
+        where: {
+          id_projectId: {
+            id: taskId,
+            projectId: existingTask.projectId,
+          },
         },
-      },
-    });
+      });
 
-    await prisma.auditLog.create({
-      data: {
-        workspaceId: workspace.id,
-        action: "TASK_DELETED",
-        entity: "Task",
-        entityId: task.id,
-        actorId: user.id,
-      },
+      await tx.auditLog.create({
+        data: {
+          workspaceId: workspace.id,
+          action: "TASK_DELETED",
+          entity: "Task",
+          entityId: deletedTask.id,
+          actorId: user.id,
+        },
+      });
+
+      return deletedTask;
     });
 
     revalidatePath("/tasks");

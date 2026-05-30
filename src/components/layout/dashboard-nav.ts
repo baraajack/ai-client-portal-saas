@@ -39,7 +39,7 @@ export const dashboardNavItems: DashboardNavItem[] = [
     title: "Tasks",
     href: "/tasks",
     icon: ListTodo,
-    roles: ["ADMIN", "MANAGER", "TEAM_MEMBER"],
+    roles: ["ADMIN", "MANAGER", "TEAM_MEMBER", "CLIENT"],
   },
   {
     title: "Files",

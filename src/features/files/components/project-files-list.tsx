@@ -6,6 +6,7 @@ import Link from "next/link";
 
 type ProjectFilesListProps = {
   files: FileUpload[];
+  canMutate?: boolean;
 };
 
 function formatBytes(bytes: number) {
@@ -17,7 +18,10 @@ function formatBytes(bytes: number) {
   return `${(bytes / Math.pow(1024, index)).toFixed(1)} ${units[index]}`;
 }
 
-export function ProjectFilesList({ files }: ProjectFilesListProps) {
+export function ProjectFilesList({
+  files,
+  canMutate = true,
+}: ProjectFilesListProps) {
   if (files.length === 0) {
     return (
       <div className="rounded-lg border p-6 text-center text-sm text-muted-foreground">
@@ -46,7 +50,7 @@ export function ProjectFilesList({ files }: ProjectFilesListProps) {
               <Link href={`/files/${file.id}`}>Open</Link>
             </Button>
 
-            <DeleteFileButton fileId={file.id} />
+            {canMutate && <DeleteFileButton fileId={file.id} />}
           </div>
         </div>
       ))}
