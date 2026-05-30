@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
+import { getOptionalCurrentClient } from "@/lib/auth/current-client";
 import { getCurrentWorkspace } from "@/lib/auth/current-workspace";
+import { ClientProfileNotLinked } from "@/features/clients/components/client-profile-not-linked";
 import { getProjectById } from "@/features/projects/queries";
 import { ProjectStatusBadge } from "@/features/projects/components/project-status-badge";
 import { getProjectTasks } from "@/features/tasks/queries";
@@ -20,6 +22,12 @@ export default async function ProjectDetailPage({
   params,
 }: ProjectDetailPageProps) {
   const { projectId } = await params;
+  const { role } = await getCurrentWorkspace();
+  const client = await getOptionalCurrentClient();
+
+  if (role === "CLIENT" && !client) {
+    return <ClientProfileNotLinked />;
+  }
 
   const project = await getProjectById(projectId);
 
@@ -27,7 +35,6 @@ export default async function ProjectDetailPage({
     notFound();
   }
 
-  const { role } = await getCurrentWorkspace();
   const canMutate = role !== "CLIENT";
   const [tasks, members, files] = await Promise.all([
     getProjectTasks(projectId),

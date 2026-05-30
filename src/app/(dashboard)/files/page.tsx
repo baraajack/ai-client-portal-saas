@@ -1,7 +1,14 @@
+import { ClientProfileNotLinked } from "@/features/clients/components/client-profile-not-linked";
+import { getOptionalCurrentClient } from "@/lib/auth/current-client";
 import { requirePermission } from "@/lib/permissions/require-permission";
 
 export default async function FilesPage() {
-  await requirePermission("files", "view");
+  const { role } = await requirePermission("files", "view");
+  const client = await getOptionalCurrentClient();
+
+  if (role === "CLIENT" && !client) {
+    return <ClientProfileNotLinked />;
+  }
 
   return (
     <div>

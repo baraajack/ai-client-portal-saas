@@ -4,7 +4,7 @@ import { getCurrentUser } from "@/lib/auth/current-user";
 import { getCurrentWorkspace } from "@/lib/auth/current-workspace";
 import { ForbiddenError } from "@/lib/permissions/errors";
 
-export const getCurrentClient = cache(async () => {
+export const getOptionalCurrentClient = cache(async () => {
   const { workspace, role } = await getCurrentWorkspace();
 
   if (role !== "CLIENT") {
@@ -24,7 +24,14 @@ export const getCurrentClient = cache(async () => {
     },
   });
 
-  if (!client) {
+  return client;
+});
+
+export const getCurrentClient = cache(async () => {
+  const { role } = await getCurrentWorkspace();
+  const client = await getOptionalCurrentClient();
+
+  if (role === "CLIENT" && !client) {
     throw new ForbiddenError("Client profile is not linked.");
   }
 
