@@ -7,6 +7,149 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id              String            @id @default(cuid())
+  email           String            @unique
+  fullName        String?
+  avatarUrl       String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  auditLogs       AuditLog[]
+  sentInvitations Invitation[]
+  assignedTasks   Task[]            @relation("AssignedTasks")
+  memberships     WorkspaceMember[]
+}
+
+model Workspace {
+  id          String            @id @default(cuid())
+  name        String
+  slug        String            @unique
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  auditLogs   AuditLog[]
+  clients     Client[]
+  invitations Invitation[]
+  projects    Project[]
+  members     WorkspaceMember[]
+}
+
+model WorkspaceMember {
+  id          String    @id @default(cuid())
+  userId      String
+  workspaceId String
+  role        Role
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+}
+
+model Client {
+  id          String    @id @default(cuid())
+  workspaceId String
+  name        String
+  email       String?
+  company     String?
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  projects    Project[]
+
+  @@unique([id, workspaceId])
+  @@index([workspaceId])
+}
+
+model Project {
+  id          String        @id @default(cuid())
+  workspaceId String
+  clientId    String?
+  name        String
+  description String?
+  status      ProjectStatus @default(PLANNING)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  files       FileUpload[]
+  client      Client?       @relation(fields: [clientId], references: [id])
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+
+  @@unique([id, workspaceId])
+  @@index([workspaceId])
+  @@index([clientId])
+}
+
+model Task {
+  id           String     @id @default(cuid())
+  projectId    String
+  assignedToId String?
+  title        String
+  description  String?
+  status       TaskStatus @default(TODO)
+  dueDate      DateTime?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  assignedTo   User?      @relation("AssignedTasks", fields: [assignedToId], references: [id])
+  project      Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([id, projectId])
+  @@index([projectId])
+  @@index([assignedToId])
+}
+
+model FileUpload {
+  id           String   @id @default(cuid())
+  projectId    String
+  fileName     String
+  fileUrl      String?
+  fileSize     Int
+  mimeType     String
+  createdAt    DateTime @default(now())
+  filePath     String
+  uploadedById String?
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([id, projectId])
+  @@index([projectId])
+}
+
+model AuditLog {
+  id          String    @id @default(cuid())
+  workspaceId String
+  action      String
+  entity      String
+  entityId    String
+  actorId     String?
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+  actor       User?     @relation(fields: [actorId], references: [id])
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([actorId])
+  @@index([createdAt])
+}
+
+model Invitation {
+  id          String           @id @default(cuid())
+  workspaceId String
+  email       String
+  role        Role
+  token       String           @unique
+  status      InvitationStatus @default(PENDING)
+  invitedById String?
+  expiresAt   DateTime
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  invitedBy   User?            @relation(fields: [invitedById], references: [id])
+  workspace   Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([email])
+  @@index([token])
+}
+
 enum Role {
   ADMIN
   MANAGER
@@ -34,191 +177,4 @@ enum InvitationStatus {
   ACCEPTED
   EXPIRED
   REVOKED
-}
-
-model User {
-  id String @id @default(cuid())
-  email     String  @unique
-  fullName  String?
-  avatarUrl String?
-
-  memberships   WorkspaceMember[]
-  assignedTasks Task[]            @relation("AssignedTasks")
-  auditLogs AuditLog[]
-  sentInvitations Invitation[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Workspace {
-  id   String @id @default(cuid())
-  name String
-  slug String @unique
-
-  members   WorkspaceMember[]
-  clients   Client[]
-  projects  Project[]
-  auditLogs AuditLog[]
-  invitations Invitation[]
-  
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model WorkspaceMember {
-  id String @id @default(cuid())
-
-  userId      String
-  workspaceId String
-  
-
-  role Role
-
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@unique([userId, workspaceId])
-}
-
-model Client {
-  id String @id @default(cuid())
-
-  workspaceId String
-
-  name    String
-  email   String?
-  company String?
-  notes   String?
-
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-
-  projects Project[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([id, workspaceId])
-  @@index([workspaceId])
-}
-
-model Project {
-  id String @id @default(cuid())
-
-  workspaceId String
-  clientId    String?
-
-  name        String
-  description String?
-
-  status ProjectStatus @default(PLANNING)
-
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-
-  client Client? @relation(fields: [clientId], references: [id])
-
-  tasks Task[]
-  files FileUpload[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([id, workspaceId])
-  @@index([workspaceId])
-  @@index([clientId])
-}
-
-model Task {
-  id String @id @default(cuid())
-
-  projectId    String
-  assignedToId String?
-
-  title       String
-  description String?
-
-  status  TaskStatus @default(TODO)
-  dueDate DateTime?
-
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  assignedTo User? @relation("AssignedTasks", fields: [assignedToId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([id, projectId])
-  @@index([projectId])
-  @@index([assignedToId])
-}
-
-model FileUpload {
-  id          String @id @default(cuid())
-
-  projectId   String
-
-  fileName    String
-  filePath    String
-  fileUrl     String?
-  fileSize    Int
-  mimeType    String
-
-  uploadedById String?
-
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@unique([id, projectId])
-  @@index([projectId])
-}
-
-model AuditLog {
-  id          String @id @default(cuid())
-
-  workspaceId String
-
-  action      String
-  entity      String
-  entityId    String
-
-  actorId     String?
-  actor       User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
-
-  metadata Json?
-
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@index([workspaceId])
-  @@index([actorId])
-  @@index([createdAt])
-}
-
-model Invitation {
-  id          String @id @default(cuid())
-
-  workspaceId String
-  email       String
-  role        Role
-  token       String @unique
-  status      InvitationStatus @default(PENDING)
-
-  invitedById String?
-
-  expiresAt DateTime
-
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  invitedBy User? @relation(fields: [invitedById], references: [id], onDelete: SetNull)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([workspaceId])
-  @@index([email])
-  @@index([token])
 }
