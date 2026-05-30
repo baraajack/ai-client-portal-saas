@@ -7,6 +7,10 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { safeAction } from "@/lib/actions/safe-action";
 import { assertPermission } from "@/lib/permissions/assert-permission";
 import {
+  assertActionRateLimit,
+  fileUploadRateLimit,
+} from "@/lib/security/rate-limit";
+import {
   ALLOWED_MIME_TYPES,
   FILE_BUCKET,
   MAX_FILE_SIZE,
@@ -26,6 +30,7 @@ export async function uploadProjectFileAction(
   return safeAction(async () => {
     const { workspace } = await assertPermission("files", "upload");
     const user = await getCurrentUser();
+    await assertActionRateLimit(fileUploadRateLimit, "file-upload", user.id);
 
     const project = await prisma.project.findFirst({
       where: {

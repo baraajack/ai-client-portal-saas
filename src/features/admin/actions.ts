@@ -5,6 +5,10 @@ import { prisma } from "@/lib/db/prisma";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { assertPermission } from "@/lib/permissions/assert-permission";
 import { safeAction } from "@/lib/actions/safe-action";
+import {
+  adminMutationRateLimit,
+  assertActionRateLimit,
+} from "@/lib/security/rate-limit";
 import { updateMemberRoleSchema } from "@/features/admin/schemas";
 
 export async function updateMemberRoleAction(
@@ -15,6 +19,11 @@ export async function updateMemberRoleAction(
     const { workspace } = await assertPermission("admin", "view");
 
     const currentUser = await getCurrentUser();
+    await assertActionRateLimit(
+      adminMutationRateLimit,
+      "admin-role-update",
+      currentUser.id
+    );
 
     const parsed = updateMemberRoleSchema.safeParse({
       role: formData.get("role"),
@@ -91,6 +100,11 @@ export async function updateWorkspaceNameAction(
   return safeAction(async () => {
     const { workspace } = await assertPermission("admin", "view");
     const currentUser = await getCurrentUser();
+    await assertActionRateLimit(
+      adminMutationRateLimit,
+      "workspace-update",
+      currentUser.id
+    );
 
     const name = String(formData.get("name"));
 

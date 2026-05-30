@@ -10,6 +10,10 @@ import { getCurrentUser } from "@/lib/auth/current-user";
 import { createClient } from "@/lib/supabase/server";
 import { assertPermission } from "@/lib/permissions/assert-permission";
 import { safeAction } from "@/lib/actions/safe-action";
+import {
+  assertActionRateLimit,
+  invitationRateLimit,
+} from "@/lib/security/rate-limit";
 import { createInvitationSchema } from "@/features/invitations/schemas";
 
 function createInviteToken() {
@@ -20,6 +24,11 @@ export async function createInvitationAction(formData: FormData) {
   return safeAction(async () => {
     const { workspace } = await assertPermission("invitations", "create");
     const user = await getCurrentUser();
+    await assertActionRateLimit(
+      invitationRateLimit,
+      "invitation-create",
+      user.id
+    );
 
     const parsed = createInvitationSchema.safeParse({
       email: formData.get("email"),
@@ -92,6 +101,11 @@ export async function revokeInvitationAction(invitationId: string) {
   return safeAction(async () => {
     const { workspace } = await assertPermission("invitations", "revoke");
     const user = await getCurrentUser();
+    await assertActionRateLimit(
+      invitationRateLimit,
+      "invitation-revoke",
+      user.id
+    );
 
     const invitation = await prisma.invitation.findFirst({
       where: {
