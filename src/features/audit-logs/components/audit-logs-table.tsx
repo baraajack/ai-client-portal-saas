@@ -1,6 +1,9 @@
 import { AuditLog, User } from "@prisma/client";
 import { format } from "date-fns";
 import { AuditActionBadge } from "@/features/audit-logs/components/audit-action-badge";
+import { ScrollText } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 type AuditLogWithActor = AuditLog & {
   actor: User | null;
@@ -13,45 +16,42 @@ type AuditLogsTableProps = {
 export function AuditLogsTable({ logs }: AuditLogsTableProps) {
   if (logs.length === 0) {
     return (
-      <div className="rounded-lg border p-8 text-center text-muted-foreground">
-        No audit logs found.
-      </div>
+      <EmptyState icon={ScrollText} title="No audit events" description="Workspace and administrative changes will appear here as they occur." />
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border">
-      <table className="w-full text-sm">
-        <thead className="bg-muted">
-          <tr>
-            <th className="px-4 py-3 text-left font-medium">Action</th>
-            <th className="px-4 py-3 text-left font-medium">Entity</th>
-            <th className="px-4 py-3 text-left font-medium">Actor</th>
-            <th className="px-4 py-3 text-left font-medium">Entity ID</th>
-            <th className="px-4 py-3 text-left font-medium">Time</th>
-          </tr>
-        </thead>
-
-        <tbody>
+    <div className="overflow-hidden rounded-lg border bg-card shadow-sm">
+      <Table>
+        <TableHeader className="bg-muted/55">
+          <TableRow>
+            <TableHead>Action</TableHead>
+            <TableHead>Entity</TableHead>
+            <TableHead>Actor</TableHead>
+            <TableHead>Entity ID</TableHead>
+            <TableHead>Time</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {logs.map((log) => (
-            <tr key={log.id} className="border-t">
-              <td className="px-4 py-3">
+            <TableRow key={log.id}>
+              <TableCell>
                 <AuditActionBadge action={log.action} />
-              </td>
-              <td className="px-4 py-3">{log.entity}</td>
-              <td className="px-4 py-3">
+              </TableCell>
+              <TableCell>{log.entity}</TableCell>
+              <TableCell>
                 {log.actor?.fullName || log.actor?.email || "System"}
-              </td>
-              <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+              </TableCell>
+              <TableCell className="font-mono text-xs text-muted-foreground">
                 {log.entityId}
-              </td>
-              <td className="px-4 py-3">
+              </TableCell>
+              <TableCell className="text-muted-foreground">
                 {format(log.createdAt, "PPpp")}
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

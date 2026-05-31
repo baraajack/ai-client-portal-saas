@@ -1,17 +1,17 @@
 import { getAuditLogs } from "@/features/audit-logs/queries";
 import { AuditLogsTable } from "@/features/audit-logs/components/audit-logs-table";
+import { PageHeader } from "@/components/ui/page-header";
 
 export default async function AuditLogsPage() {
   const logs = await getAuditLogs();
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Audit Logs</h1>
-        <p className="text-muted-foreground">
-          Review recent workspace activity and security-relevant events.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Management"
+        title="Audit logs"
+        description="Review workspace activity, administrative changes, and security-relevant events."
+      />
 
       <AuditLogsTable logs={logs} />
     </div>

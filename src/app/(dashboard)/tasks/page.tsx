@@ -4,6 +4,7 @@ import { getOptionalCurrentClient } from "@/lib/auth/current-client";
 import { getCurrentWorkspace } from "@/lib/auth/current-workspace";
 import { ClientProfileNotLinked } from "@/features/clients/components/client-profile-not-linked";
 import { TasksTable } from "@/features/tasks/components/tasks-table";
+import { PageHeader } from "@/components/ui/page-header";
 
 export default async function TasksPage() {
   const { role } = await getCurrentWorkspace();
@@ -21,12 +22,11 @@ export default async function TasksPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Tasks</h1>
-        <p className="text-muted-foreground">
-          Track work across all workspace projects.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Delivery"
+        title="Tasks"
+        description="Track assignments, due dates, and progress across workspace projects."
+      />
 
       <TasksTable
         tasks={tasks}

@@ -9,11 +9,11 @@ export function CreateInvitationForm() {
   return (
     <form
       action={createInvitationAction as unknown as (formData: FormData) => void}
-      className="flex gap-2"
+      className="flex flex-col gap-2 sm:flex-row"
     >
       <Input name="email" type="email" placeholder="Email" required />
 
-      <select name="role" defaultValue="CLIENT" className="rounded-md border px-3">
+      <select name="role" defaultValue="CLIENT" className="h-9 rounded-lg border border-input bg-background px-3 text-sm shadow-xs">
         {Object.values(Role).map((role) => (
           <option key={role} value={role}>
             {role}

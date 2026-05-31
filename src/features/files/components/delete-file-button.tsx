@@ -12,9 +12,8 @@ export function DeleteFileButton({ fileId }: { fileId: string }) {
 
   return (
     <form action={deleteWithFileId}>
-      <Button type="submit" variant="destructive" size="sm">
-        <Trash2 className="mr-2 size-4" />
-        Delete
+      <Button type="submit" variant="destructive" size="icon-sm" aria-label="Delete file" title="Delete file">
+        <Trash2 className="size-4" />
       </Button>
     </form>
   );

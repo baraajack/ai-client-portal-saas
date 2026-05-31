@@ -15,9 +15,8 @@ export function DeleteProjectButton({ projectId }: DeleteProjectButtonProps) {
         await deleteProjectAction(projectId);
       }}
     >
-      <Button type="submit" variant="destructive" size="sm">
-        <Trash2 className="mr-2 size-4" />
-        Delete
+      <Button type="submit" variant="destructive" size="icon-sm" aria-label="Delete project" title="Delete project">
+        <Trash2 className="size-4" />
       </Button>
     </form>
   );

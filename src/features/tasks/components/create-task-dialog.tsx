@@ -6,9 +6,11 @@ import { createTaskAction } from "@/features/tasks/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -48,13 +50,13 @@ export function CreateTaskDialog({ projectId, members }: CreateTaskDialogProps) 
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create task</DialogTitle>
+          <DialogDescription>Add a work item, assign ownership, and set delivery timing.</DialogDescription>
         </DialogHeader>
 
         <form action={createTaskWithProject} className="space-y-4">
-          <Input name="title" placeholder="Task title" required />
-
-          <Textarea name="description" placeholder="Description" />
-
+          <div className="space-y-2"><Label htmlFor="task-title">Task title</Label><Input id="task-title" name="title" placeholder="Prepare review draft" required /></div>
+          <div className="space-y-2"><Label htmlFor="task-description">Description</Label><Textarea id="task-description" name="description" placeholder="Add task details or acceptance notes." /></div>
+          <div className="space-y-2"><Label>Assignee</Label>
           <Select name="assignedToId">
             <SelectTrigger>
               <SelectValue placeholder="Assign to" />
@@ -67,7 +69,8 @@ export function CreateTaskDialog({ projectId, members }: CreateTaskDialogProps) 
               ))}
             </SelectContent>
           </Select>
-
+          </div>
+          <div className="space-y-2"><Label>Status</Label>
           <Select name="status" defaultValue={TaskStatus.TODO}>
             <SelectTrigger>
               <SelectValue placeholder="Status" />
@@ -80,8 +83,8 @@ export function CreateTaskDialog({ projectId, members }: CreateTaskDialogProps) 
               ))}
             </SelectContent>
           </Select>
-
-          <Input name="dueDate" type="date" />
+          </div>
+          <div className="space-y-2"><Label htmlFor="task-due-date">Due date</Label><Input id="task-due-date" name="dueDate" type="date" /></div>
 
           <Button type="submit" className="w-full">
             Create task

@@ -15,9 +15,8 @@ export function DeleteTaskButton({ taskId }: DeleteTaskButtonProps) {
 
   return (
     <form action={deleteTaskWithId}>
-      <Button type="submit" variant="destructive" size="sm">
-        <Trash2 className="mr-2 size-4" />
-        Delete
+      <Button type="submit" variant="destructive" size="icon-sm" aria-label="Delete task" title="Delete task">
+        <Trash2 className="size-4" />
       </Button>
     </form>
   );

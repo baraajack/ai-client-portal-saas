@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -24,6 +25,7 @@ export function CreateClientDialog() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create client</DialogTitle>
+          <DialogDescription>Add a client record for projects, files, and delivery tracking.</DialogDescription>
         </DialogHeader>
 
         <CreateClientForm />

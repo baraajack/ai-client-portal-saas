@@ -3,6 +3,9 @@ import { format } from "date-fns";
 import { TaskStatusBadge } from "@/features/tasks/components/task-status-badge";
 import { EditTaskDialog } from "@/features/tasks/components/edit-task-dialog";
 import { DeleteTaskButton } from "@/features/tasks/components/delete-task-button";
+import { ClipboardList } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 type TaskWithRelations = Task & {
   project?: Project;
@@ -28,67 +31,61 @@ export function TasksTable({
 }: TasksTableProps) {
   if (tasks.length === 0) {
     return (
-      <div className="rounded-lg border p-8 text-center text-muted-foreground">
-        No tasks found.
-      </div>
+      <EmptyState compact icon={ClipboardList} title="No tasks yet" description="Tasks will appear here as project work is planned and assigned." />
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border">
-      <table className="w-full text-sm">
-        <thead className="bg-muted">
-          <tr>
-            <th className="px-4 py-3 text-left font-medium">Task</th>
+    <div className="overflow-hidden rounded-lg border bg-card shadow-sm">
+      <Table>
+        <TableHeader className="bg-muted/55">
+          <TableRow>
+            <TableHead>Task</TableHead>
             {showProject && (
-              <th className="px-4 py-3 text-left font-medium">Project</th>
+              <TableHead>Project</TableHead>
             )}
-            <th className="px-4 py-3 text-left font-medium">Assignee</th>
-            <th className="px-4 py-3 text-left font-medium">Status</th>
-            <th className="px-4 py-3 text-left font-medium">Due date</th>
+            <TableHead>Assignee</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Due date</TableHead>
             {canMutate && (
-              <th className="px-4 py-3 text-right font-medium">Actions</th>
+              <TableHead className="text-right">Actions</TableHead>
             )}
-          </tr>
-        </thead>
-
-        <tbody>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {tasks.map((task) => (
-            <tr key={task.id} className="border-t">
-              <td className="px-4 py-3">
+            <TableRow key={task.id}>
+              <TableCell>
                 <p className="font-medium">{task.title}</p>
                 {task.description && (
-                  <p className="text-muted-foreground">{task.description}</p>
+                  <p className="mt-0.5 max-w-xs truncate text-xs text-muted-foreground">{task.description}</p>
                 )}
-              </td>
+              </TableCell>
 
               {showProject && (
-                <td className="px-4 py-3">{task.project?.name ?? "-"}</td>
+                <TableCell className="text-muted-foreground">{task.project?.name ?? "—"}</TableCell>
               )}
 
-              <td className="px-4 py-3">
-                {task.assignedTo?.fullName || task.assignedTo?.email || "-"}
-              </td>
+              <TableCell className="text-muted-foreground">{task.assignedTo?.fullName || task.assignedTo?.email || "Unassigned"}</TableCell>
 
-              <td className="px-4 py-3">
+              <TableCell>
                 <TaskStatusBadge status={task.status} />
-              </td>
+              </TableCell>
 
-              <td className="px-4 py-3">
-                {task.dueDate ? format(task.dueDate, "PPP") : "-"}
-              </td>
+              <TableCell className="text-muted-foreground">{task.dueDate ? format(task.dueDate, "MMM d, yyyy") : "—"}</TableCell>
 
               {canMutate && (
-                <td className="px-4 py-3 text-right">
+                <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
+                    <EditTaskDialog task={task} members={members} />
                     <DeleteTaskButton taskId={task.id} />
                   </div>
-                </td>
+                </TableCell>
               )}
-            </tr>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

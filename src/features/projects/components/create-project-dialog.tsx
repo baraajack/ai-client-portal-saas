@@ -6,20 +6,15 @@ import { createProjectAction } from "@/features/projects/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 type CreateProjectDialogProps = {
   clients: {
@@ -41,20 +36,22 @@ export function CreateProjectDialog({ clients }: CreateProjectDialogProps) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Create project</DialogTitle>
+          <DialogDescription>Set up a delivery workspace for tasks, files, and client collaboration.</DialogDescription>
         </DialogHeader>
 
         <form
           action={createProjectAction as unknown as (formData: FormData) => void}
           className="space-y-4"
         >
-          <Input name="name" placeholder="Project name" required />
-          
-          <Textarea name="description" placeholder="Description" />
-          
+          <div className="space-y-2"><Label htmlFor="project-name">Project name</Label><Input id="project-name" name="name" placeholder="Website redesign" required /></div>
+          <div className="space-y-2"><Label htmlFor="project-description">Description</Label><Textarea id="project-description" name="description" placeholder="Add a concise project brief." /></div>
+          <div className="space-y-2">
+          <Label htmlFor="project-client">Client</Label>
           <select
+            id="project-client"
             name="clientId"
             defaultValue=""
-            className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+            className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm shadow-xs"
           >
             <option value="">No client</option>
             {clients.map((client) => (
@@ -63,11 +60,14 @@ export function CreateProjectDialog({ clients }: CreateProjectDialogProps) {
               </option>
             ))}
           </select>
-          
+          </div>
+          <div className="space-y-2">
+          <Label htmlFor="project-status">Status</Label>
           <select
+            id="project-status"
             name="status"
             defaultValue={ProjectStatus.PLANNING}
-            className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+            className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm shadow-xs"
           >
             {Object.values(ProjectStatus).map((status) => (
               <option key={status} value={status}>
@@ -75,7 +75,7 @@ export function CreateProjectDialog({ clients }: CreateProjectDialogProps) {
               </option>
            ))}
           </select>
-          
+          </div>
           <Button type="submit" className="w-full">
             Create project
           </Button>

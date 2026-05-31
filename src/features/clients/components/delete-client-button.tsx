@@ -15,9 +15,8 @@ export function DeleteClientButton({ clientId }: DeleteClientButtonProps) {
         await deleteClientAction(clientId);
       }}
     >      
-    <Button type="submit" variant="destructive" size="sm">
-        <Trash2 className="mr-2 size-4" />
-        Delete
+    <Button type="submit" variant="destructive" size="icon-sm" aria-label="Delete client" title="Delete client">
+        <Trash2 className="size-4" />
       </Button>
     </form>
   );

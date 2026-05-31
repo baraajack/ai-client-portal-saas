@@ -1,6 +1,8 @@
 import { AuditLog, User } from "@prisma/client";
 import { formatDistanceToNow } from "date-fns";
 import { AuditActionBadge } from "@/features/audit-logs/components/audit-action-badge";
+import { Activity } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 
 type AuditLogWithActor = AuditLog & {
   actor: User | null;
@@ -9,22 +11,28 @@ type AuditLogWithActor = AuditLog & {
 export function RecentActivity({ logs }: { logs: AuditLogWithActor[] }) {
   if (logs.length === 0) {
     return (
-      <div className="rounded-lg border p-6 text-sm text-muted-foreground">
-        No recent activity.
-      </div>
+      <EmptyState
+        compact
+        icon={Activity}
+        title="No recent activity"
+        description="Workspace changes and administrative events will appear here."
+      />
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div className="relative space-y-0 before:absolute before:bottom-3 before:left-4 before:top-3 before:w-px before:bg-border">
       {logs.map((log) => (
         <div
           key={log.id}
-          className="flex items-center justify-between gap-4 rounded-lg border p-4"
+          className="relative flex items-start justify-between gap-4 py-3 pl-10"
         >
-          <div>
+          <div className="absolute left-1 top-3.5 flex size-6 items-center justify-center rounded-full border bg-background text-primary shadow-sm">
+            <Activity className="size-3" />
+          </div>
+          <div className="min-w-0">
             <AuditActionBadge action={log.action} />
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="mt-1.5 text-sm text-muted-foreground">
               {log.actor?.fullName || log.actor?.email || "System"} ·{" "}
               {log.entity}
             </p>

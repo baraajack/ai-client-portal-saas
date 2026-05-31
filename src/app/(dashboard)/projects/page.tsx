@@ -5,6 +5,7 @@ import { getCurrentWorkspace } from "@/lib/auth/current-workspace";
 import { ClientProfileNotLinked } from "@/features/clients/components/client-profile-not-linked";
 import { CreateProjectDialog } from "@/features/projects/components/create-project-dialog";
 import { ProjectsTable } from "@/features/projects/components/projects-table";
+import { PageHeader } from "@/components/ui/page-header";
 
 export default async function ProjectsPage() {
   const { role } = await getCurrentWorkspace();
@@ -23,16 +24,12 @@ export default async function ProjectsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-2xl font-bold">Projects</h1>
-          <p className="text-muted-foreground">
-            Manage projects, statuses, clients, tasks, and files.
-          </p>
-        </div>
-
-        {canCreateProject && <CreateProjectDialog clients={clients} />}
-      </div>
+      <PageHeader
+        eyebrow="Delivery"
+        title="Projects"
+        description="Coordinate client delivery, project status, tasks, and shared files."
+        actions={canCreateProject && <CreateProjectDialog clients={clients} />}
+      />
 
       <ProjectsTable
         projects={projects}

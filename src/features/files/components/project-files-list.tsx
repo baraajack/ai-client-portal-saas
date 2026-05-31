@@ -3,6 +3,8 @@ import { format } from "date-fns";
 import { DeleteFileButton } from "@/features/files/components/delete-file-button";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { Download, FileText } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 
 type ProjectFilesListProps = {
   files: FileUpload[];
@@ -24,30 +26,32 @@ export function ProjectFilesList({
 }: ProjectFilesListProps) {
   if (files.length === 0) {
     return (
-      <div className="rounded-lg border p-6 text-center text-sm text-muted-foreground">
-        No files uploaded.
-      </div>
+      <EmptyState compact icon={FileText} title="No files uploaded" description="Upload project documents and deliverables to keep the workspace organized." />
     );
   }
 
   return (
-    <div className="space-y-3">
+    <div className="divide-y rounded-lg border bg-card">
       {files.map((file) => (
         <div
           key={file.id}
-          className="flex items-center justify-between gap-4 rounded-lg border p-4"
+          className="flex items-center justify-between gap-4 p-4 transition-colors hover:bg-muted/35"
         >
-          <div>
-            <p className="font-medium">{file.fileName}</p>
-            <p className="text-sm text-muted-foreground">
-              {formatBytes(file.fileSize)} · {file.mimeType} ·{" "}
-              {format(file.createdAt, "PPP")}
-            </p>
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <FileText className="size-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate font-medium">{file.fileName}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {formatBytes(file.fileSize)} · {file.mimeType} · {format(file.createdAt, "MMM d, yyyy")}
+              </p>
+            </div>
           </div>
 
           <div className="flex gap-2">
             <Button asChild variant="outline" size="sm">
-              <Link href={`/files/${file.id}`}>Open</Link>
+              <Link href={`/files/${file.id}`}><Download className="size-3.5" /> Open</Link>
             </Button>
 
             {canMutate && <DeleteFileButton fileId={file.id} />}

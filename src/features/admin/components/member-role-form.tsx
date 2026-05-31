@@ -2,6 +2,7 @@
 
 import { Role } from "@prisma/client";
 import { updateMemberRoleAction } from "@/features/admin/actions";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   memberId: string;
@@ -21,7 +22,7 @@ export function MemberRoleForm({
       <select
         name="role"
         defaultValue={currentRole}
-        className="border rounded px-2 py-1"
+        className="h-8 rounded-lg border border-input bg-background px-2 text-xs shadow-xs"
       >
         {Object.values(Role).map((role) => (
           <option key={role} value={role}>
@@ -30,12 +31,9 @@ export function MemberRoleForm({
         ))}
       </select>
 
-      <button
-        type="submit"
-        className="ml-2 text-sm"
-      >
+      <Button type="submit" variant="outline" size="sm" className="ml-2">
         Save
-      </button>
+      </Button>
     </form>
   );
 }

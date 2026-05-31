@@ -4,6 +4,9 @@ import { ProjectStatusBadge } from "@/features/projects/components/project-statu
 import { DeleteProjectButton } from "@/features/projects/components/delete-project-button";
 import { EditProjectDialog } from "@/features/projects/components/edit-project-dialog";
 import { Button } from "@/components/ui/button";
+import { ArrowUpRight, FolderKanban } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 type ProjectWithClient = Project & {
   client: Client | null;
@@ -29,40 +32,37 @@ export function ProjectsTable({
 }: ProjectsTableProps) {
   if (projects.length === 0) {
     return (
-      <div className="rounded-lg border p-8 text-center text-muted-foreground">
-        No projects found.
-      </div>
+      <EmptyState icon={FolderKanban} title="No projects yet" description="Create a project to organize client delivery, tasks, and files." />
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border">
-      <table className="w-full text-sm">
-        <thead className="bg-muted">
-          <tr>
-            <th className="px-4 py-3 text-left font-medium">Project</th>
-            <th className="px-4 py-3 text-left font-medium">Client</th>
-            <th className="px-4 py-3 text-left font-medium">Status</th>
-            <th className="px-4 py-3 text-left font-medium">Tasks</th>
-            <th className="px-4 py-3 text-left font-medium">Files</th>
-            <th className="px-4 py-3 text-right font-medium">Actions</th>
-          </tr>
-        </thead>
-
-        <tbody>
+    <div className="overflow-hidden rounded-lg border bg-card shadow-sm">
+      <Table>
+        <TableHeader className="bg-muted/55">
+          <TableRow>
+            <TableHead>Project</TableHead>
+            <TableHead>Client</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Tasks</TableHead>
+            <TableHead>Files</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {projects.map((project) => (
-            <tr key={project.id} className="border-t">
-              <td className="px-4 py-3 font-medium">{project.name}</td>
-              <td className="px-4 py-3">{project.client?.name ?? "-"}</td>
-              <td className="px-4 py-3">
+            <TableRow key={project.id}>
+              <TableCell className="font-medium">{project.name}</TableCell>
+              <TableCell className="text-muted-foreground">{project.client?.name ?? "—"}</TableCell>
+              <TableCell>
                 <ProjectStatusBadge status={project.status} />
-              </td>
-              <td className="px-4 py-3">{project._count.tasks}</td>
-              <td className="px-4 py-3">{project._count.files}</td>
-              <td className="px-4 py-3 text-right">
+              </TableCell>
+              <TableCell>{project._count.tasks}</TableCell>
+              <TableCell>{project._count.files}</TableCell>
+              <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
                   <Button asChild variant="outline" size="sm">
-                    <Link href={`/projects/${project.id}`}>View</Link>
+                    <Link href={`/projects/${project.id}`}>View <ArrowUpRight className="size-3.5" /></Link>
                   </Button>
 
                   {canMutate && (
@@ -72,11 +72,11 @@ export function ProjectsTable({
                     </>
                   )}
                 </div>
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

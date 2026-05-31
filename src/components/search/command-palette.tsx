@@ -14,15 +14,23 @@ export function CommandPalette() {
       }
     }
 
+    function onOpen() {
+      setOpen(true);
+    }
+
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    window.addEventListener("open-command-palette", onOpen);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("open-command-palette", onOpen);
+    };
   }, []);
 
   if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm">
-      <div className="mx-auto mt-24 w-full max-w-xl rounded-lg border bg-background p-4 shadow-lg">
+      <div className="mx-auto mt-24 w-full max-w-xl rounded-lg border bg-popover p-4 shadow-2xl">
         <Command>
           <Command.Input
             autoFocus

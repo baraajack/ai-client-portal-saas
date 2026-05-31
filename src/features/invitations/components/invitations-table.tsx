@@ -2,6 +2,9 @@ import { Invitation, User } from "@prisma/client";
 import { format } from "date-fns";
 import { RevokeInvitationButton } from "@/features/invitations/components/revoke-invitation-button";
 import { Badge } from "@/components/ui/badge";
+import { MailOpen } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 type InvitationWithUser = Invitation & {
   invitedBy: User | null;
@@ -14,47 +17,44 @@ export function InvitationsTable({
 }) {
   if (invitations.length === 0) {
     return (
-      <div className="rounded-lg border p-6 text-sm text-muted-foreground">
-        No invitations found.
-      </div>
+      <EmptyState compact icon={MailOpen} title="No pending invitations" description="New workspace invitations will appear here until accepted or revoked." />
     );
   }
 
   return (
-    <div className="rounded-lg border overflow-hidden">
-      <table className="w-full text-sm">
-        <thead className="bg-muted">
-          <tr>
-            <th className="px-4 py-3 text-left">Email</th>
-            <th className="px-4 py-3 text-left">Role</th>
-            <th className="px-4 py-3 text-left">Status</th>
-            <th className="px-4 py-3 text-left">Expires</th>
-            <th className="px-4 py-3 text-left">Invited By</th>
-            <th className="px-4 py-3 text-right">Actions</th>
-          </tr>
-        </thead>
-
-        <tbody>
+    <div className="overflow-hidden rounded-lg border bg-card shadow-sm">
+      <Table>
+        <TableHeader className="bg-muted/55">
+          <TableRow>
+            <TableHead>Email</TableHead>
+            <TableHead>Role</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Expires</TableHead>
+            <TableHead>Invited by</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {invitations.map((invite) => (
-            <tr key={invite.id} className="border-t">
-              <td className="px-4 py-3">{invite.email}</td>
-              <td className="px-4 py-3">{invite.role}</td>
-              <td className="px-4 py-3">
+            <TableRow key={invite.id}>
+              <TableCell className="font-medium">{invite.email}</TableCell>
+              <TableCell>{invite.role.replaceAll("_", " ")}</TableCell>
+              <TableCell>
                 <Badge variant="secondary">{invite.status}</Badge>
-              </td>
-              <td className="px-4 py-3">{format(invite.expiresAt, "PPP")}</td>
-              <td className="px-4 py-3">
+              </TableCell>
+              <TableCell className="text-muted-foreground">{format(invite.expiresAt, "MMM d, yyyy")}</TableCell>
+              <TableCell className="text-muted-foreground">
                 {invite.invitedBy?.email ?? "System"}
-              </td>
-              <td className="px-4 py-3 text-right">
+              </TableCell>
+              <TableCell className="text-right">
                 {invite.status === "PENDING" && (
                   <RevokeInvitationButton invitationId={invite.id} />
                 )}
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

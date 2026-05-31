@@ -6,9 +6,11 @@ import { updateTaskAction } from "@/features/tasks/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -49,19 +51,20 @@ export function EditTaskDialog({ task, members }: EditTaskDialogProps) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit task</DialogTitle>
+          <DialogDescription>Adjust task scope, assignment, status, or delivery date.</DialogDescription>
         </DialogHeader>
 
         <form
           action={updateTaskWithId as unknown as (formData: FormData) => void}
           className="space-y-4"
         >
-          <Input name="title" defaultValue={task.title} required />
-
-          <Textarea
+          <div className="space-y-2"><Label htmlFor={`task-title-${task.id}`}>Task title</Label><Input id={`task-title-${task.id}`} name="title" defaultValue={task.title} required /></div>
+          <div className="space-y-2"><Label htmlFor={`task-description-${task.id}`}>Description</Label><Textarea
+            id={`task-description-${task.id}`}
             name="description"
             defaultValue={task.description ?? ""}
-          />
-
+          /></div>
+          <div className="space-y-2"><Label>Assignee</Label>
           <Select name="assignedToId" defaultValue={task.assignedToId ?? undefined}>
             <SelectTrigger>
               <SelectValue placeholder="Assign to" />
@@ -74,7 +77,8 @@ export function EditTaskDialog({ task, members }: EditTaskDialogProps) {
               ))}
             </SelectContent>
           </Select>
-
+          </div>
+          <div className="space-y-2"><Label>Status</Label>
           <Select name="status" defaultValue={task.status}>
             <SelectTrigger>
               <SelectValue placeholder="Status" />
@@ -87,8 +91,8 @@ export function EditTaskDialog({ task, members }: EditTaskDialogProps) {
               ))}
             </SelectContent>
           </Select>
-
-          <Input name="dueDate" type="date" defaultValue={dueDate} />
+          </div>
+          <div className="space-y-2"><Label htmlFor={`task-due-date-${task.id}`}>Due date</Label><Input id={`task-due-date-${task.id}`} name="dueDate" type="date" defaultValue={dueDate} /></div>
 
           <Button type="submit" className="w-full">
             Save changes

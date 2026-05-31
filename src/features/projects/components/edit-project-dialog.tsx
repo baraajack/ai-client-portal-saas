@@ -6,9 +6,11 @@ import { updateProjectAction } from "@/features/projects/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -30,8 +32,6 @@ type EditProjectDialogProps = {
 };
 
 export function EditProjectDialog({ project, clients }: EditProjectDialogProps) {
-  const updateProjectWithId = updateProjectAction.bind(null, project.id);
-
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -44,6 +44,7 @@ export function EditProjectDialog({ project, clients }: EditProjectDialogProps) 
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit project</DialogTitle>
+          <DialogDescription>Update project ownership, status, and delivery context.</DialogDescription>
         </DialogHeader>
 
         <form 
@@ -52,18 +53,18 @@ export function EditProjectDialog({ project, clients }: EditProjectDialogProps) 
           }}
           className="space-y-4"
         >
-          <Input name="name" defaultValue={project.name} required />
-
-          <Textarea
+          <div className="space-y-2"><Label htmlFor={`project-name-${project.id}`}>Project name</Label><Input id={`project-name-${project.id}`} name="name" defaultValue={project.name} required /></div>
+          <div className="space-y-2"><Label htmlFor={`project-description-${project.id}`}>Description</Label><Textarea
+            id={`project-description-${project.id}`}
             name="description"
             defaultValue={project.description ?? ""}
-          />
-
-          
+          /></div>
+          <div className="space-y-2"><Label htmlFor={`project-client-${project.id}`}>Client</Label>
           <select
+            id={`project-client-${project.id}`}
             name="clientId"
             defaultValue={project.clientId ?? ""}
-            className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+            className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm shadow-xs"
           >
               <option value="">No client</option>
               
@@ -73,7 +74,8 @@ export function EditProjectDialog({ project, clients }: EditProjectDialogProps) 
                 </option>
               ))}
           </select>
-          
+          </div>
+          <div className="space-y-2"><Label>Status</Label>
           <Select name="status" defaultValue={project.status}>
             <SelectTrigger>
               <SelectValue placeholder="Status" />
@@ -86,6 +88,7 @@ export function EditProjectDialog({ project, clients }: EditProjectDialogProps) 
               ))}
             </SelectContent>
           </Select>
+          </div>
 
           <Button type="submit" className="w-full">
             Save changes
